@@ -1,0 +1,4 @@
+(executable
+ (public_name schema2nix)
+ (name main)
+ (libraries schema2nix))
