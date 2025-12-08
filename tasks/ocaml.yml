@@ -1,0 +1,36 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  check:
+    desc: Check OCaml files
+    silent: true
+    cmds:
+      - dune build @fmt
+
+  fix:
+    desc: Fix OCaml files
+    silent: true
+    cmds:
+      - dune build @fmt --auto-promote || true
+
+  build:
+    desc: Build OCaml project
+    silent: true
+    sources:
+      - bin/**/*
+      - lib/**/*
+    generates:
+      - _build/default/bin/main.exe
+    cmds:
+      - echo "building"
+      - dune build
+
+  run:
+    desc: Run OCaml project
+    silent: true
+    deps:
+      - build
+    cmds:
+      - dune exec _build/default/bin/main.exe

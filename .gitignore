@@ -1,4 +1,6 @@
 /.direnv
 /.zed
+/.task
 /_build
+/result
 schema2nix.opam

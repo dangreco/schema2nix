@@ -1,0 +1,46 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+includes:
+  yaml: tasks/yaml.yml
+  ocaml: tasks/ocaml.yml
+  container: tasks/container.yml
+
+tasks:
+  default:
+    desc: List tasks
+    silent: true
+    cmds:
+      - task --list
+
+  check:
+    desc: Check all files
+    silent: true
+    deps:
+      - yaml:check
+      - ocaml:check
+
+  fix:
+    desc: Fix all files
+    silent: true
+    deps:
+      - yaml:fix
+      - ocaml:fix
+
+  build:
+    desc: Build project
+    silent: true
+    deps:
+      - ocaml:build
+
+  run:
+    desc: Run project
+    silent: true
+    deps:
+      - ocaml:run
+
+  test:
+    desc: Run tests
+    silent: true
+    cmds: []

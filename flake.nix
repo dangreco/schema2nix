@@ -19,11 +19,38 @@
       imports = [ inputs.files.flakeModules.default ];
       perSystem =
         {
+          self',
           pkgs,
           config,
           ...
         }:
         {
+          packages.default = pkgs.ocamlPackages.buildDunePackage {
+            pname = "schema2nix";
+            version = "0.1.0";
+            src = ./.;
+
+            buildInputs = with pkgs.ocamlPackages; [
+              cmdliner
+            ];
+
+            meta = {
+              description = "Convert schema to Nix";
+              license = pkgs.lib.licenses.mit;
+            };
+          };
+
+          packages.docker = pkgs.dockerTools.buildLayeredImage {
+            name = "schema2nix";
+            tag = "latest";
+
+            contents = [ self'.packages.default ];
+
+            config = {
+              Entrypoint = [ "${self'.packages.default}/bin/schema2nix" ];
+            };
+          };
+
           files.files = [
             {
               path_ = ".zed/settings.json";
@@ -44,10 +71,20 @@
 
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              nil
+              yamlfmt
+
               nixd
               nixfmt
 
+              git
+              husky
+              pinact
+              go-task
+
+              yamlfmt
+              yamllint
+
+              # tools
               ocamlPackages.ocaml
               ocamlPackages.dune_3
               ocamlPackages.findlib
@@ -59,6 +96,7 @@
 
             shellHook = ''
               ${config.files.writer.drv}/bin/write-files || true
+              husky install || true
             '';
           };
         };

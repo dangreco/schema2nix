@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    desc: Build image
+    silent: true
+    sources:
+      - bin/**/*
+      - lib/**/*
+      - flake.nix
+      - flake.lock
+    generates:
+      - result
+    cmd: |
+      nix build .#docker
+
+  run:
+    desc: Run container
+    silent: true
+    deps:
+      - build
+    cmd: |
+      {{.RUNTIME | default "docker"}} load < result
+      {{.RUNTIME | default "docker"}} run --rm schema2nix
