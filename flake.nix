@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    files.url = "github:/mightyiam/files";
   };
 
   outputs =
@@ -15,12 +16,32 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
+      imports = [ inputs.files.flakeModules.default ];
       perSystem =
         {
           pkgs,
+          config,
           ...
         }:
         {
+          files.files = [
+            {
+              path_ = ".zed/settings.json";
+              drv = pkgs.writers.writeJSON "settings.json" {
+                lsp.ocamllsp.binary.path = "${pkgs.ocamlPackages.ocaml-lsp}/bin/ocamllsp";
+                languages.OCaml.formatter.external = {
+                  command = "${pkgs.ocamlPackages.ocamlformat}/bin/ocamlformat";
+                  arguments = [
+                    "--enable-outside-detected-project"
+                    "--name"
+                    "{buffer_path}"
+                    "-"
+                  ];
+                };
+              };
+            }
+          ];
+
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
               nil
@@ -33,8 +54,12 @@
               ocamlPackages.utop
               ocamlPackages.odoc
               ocamlPackages.ocaml-lsp
-              ocamlformat
+              ocamlPackages.ocamlformat
             ];
+
+            shellHook = ''
+              ${config.files.writer.drv}/bin/write-files || true
+            '';
           };
         };
     };
