@@ -5,18 +5,25 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
     files.url = "github:/mightyiam/files";
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [
+        inputs.git-hooks-nix.flakeModule
+        inputs.files.flakeModules.default
+      ];
       systems = [
         "x86_64-linux"
         "aarch64-linux"
         "aarch64-darwin"
         "x86_64-darwin"
       ];
-      imports = [ inputs.files.flakeModules.default ];
       perSystem =
         {
           self',
@@ -69,15 +76,20 @@
             }
           ];
 
+          pre-commit.settings.hooks = {
+            nixfmt.enable = true;
+            dune-fmt.enable = true;
+            yamlfmt.enable = true;
+            yamllint.enable = true;
+          };
+
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = with pkgs; [
-              yamlfmt
 
               nixd
               nixfmt
 
               git
-              husky
               pinact
               go-task
 
@@ -96,7 +108,7 @@
 
             shellHook = ''
               ${config.files.writer.drv}/bin/write-files || true
-              husky install || true
+              ${config.pre-commit.shellHook}
             '';
           };
         };
