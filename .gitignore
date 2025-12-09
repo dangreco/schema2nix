@@ -3,4 +3,5 @@
 /.task
 /_build
 /result
+/.pre-commit-config.yaml
 schema2nix.opam
